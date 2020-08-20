@@ -1,1 +1,2 @@
-password_uppgift1/db/users.sqlite
+**/*.sqlite
+**/.vscode/
