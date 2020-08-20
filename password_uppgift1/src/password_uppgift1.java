@@ -52,7 +52,11 @@ public class password_uppgift1 {
                 }
             }
         }
-        System.out.println("Välj ett av alternativen (skriv en siffra).");
+        else {
+            System.out.println("Välj ett av alternativen (skriv en siffra).");
+            showOptions();
+            return;
+        }
     }
 
     // register a new user if it doesn't exist
