@@ -1,19 +1,38 @@
+import java.util.Arrays;
 import java.util.Scanner;
+// sql
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+// hash
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+
+// set/get hash and salt
+final class Pair {
+    private byte[] hashedPassword;
+    private byte[] salt;
+    public Pair(byte[] hashedPassword, byte[] salt) {
+        this.hashedPassword = hashedPassword;
+        this.salt = salt;
+    }
+    public byte[] getHashedPassword() { return hashedPassword; }
+    public byte[] getSalt() { return salt; }
+}
 
 public class password_uppgift1 {
-    // sql path and queries, do not need to be global but easier to manage
+    // sql path and queries, do not need to be "global" but easier to overview from here (for now)
     static String dbPath = "jdbc:sqlite:db/users.sqlite"; 
-    String getPassSQL = "SELECT password, allowed FROM users WHERE username=?"; 
-    String getUserSQL = "SELECT username FROM users WHERE username=?";
-    String banUserSQL = "UPDATE users SET username=?, password=?, allowed=? WHERE username=?"; 
-    String regUserSQL = "INSERT INTO users (username, password, allowed) VALUES (?, ?, ?);";
-    String makeTableSQL = "CREATE TABLE IF NOT EXISTS users (id integer PRIMARY KEY, username text NOT NULL UNIQUE, password text NOT NULL, allowed integer DEFAULT 1);";
+    String getPassSQL = "SELECT password, salt FROM users WHERE username=?"; 
+    String getUserSQL = "SELECT username, allowed FROM users WHERE username=?";
+    String banUserSQL = "UPDATE users SET username=?, allowed=? WHERE username=?"; 
+    String regUserSQL = "INSERT INTO users (username, password, salt) VALUES (?, ?, ?);";
+    String makeTableSQL = "CREATE TABLE IF NOT EXISTS users (id integer PRIMARY KEY, username text NOT NULL UNIQUE, password blob NOT NULL, salt blob NOT NULL, allowed integer DEFAULT 1);";
 
     public static void main(String[] args) {
         password_uppgift1 database = new password_uppgift1(); // need to call non-static methods
@@ -24,6 +43,38 @@ public class password_uppgift1 {
         else {
             exit("Kunde inte koppla upp mot databasen");
         }
+    }
+
+    // hash + salt password, from https://www.javainterviewpoint.com/java-salted-password-hashing/
+    public Pair hashPassword(String password, byte[] salt) {
+        MessageDigest md;
+        byte[] hashedPassword = null;
+        try {
+            // Select the message digest for the hash computation -> SHA-256
+            md = MessageDigest.getInstance("SHA-512");
+
+            if (salt == null) { // generate pass, for registering, otherwise check salt from db
+                // Generate the random salt
+                SecureRandom random = new SecureRandom();
+                salt = new byte[16];
+                random.nextBytes(salt);
+            }
+
+            // Passing the salt to the digest for the computation
+            md.update(salt);
+
+            // Generate the salted hash
+            hashedPassword = md.digest(password.getBytes(StandardCharsets.UTF_8));
+
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hashedPassword)
+                sb.append(String.format("%02x", b));
+
+        } catch (NoSuchAlgorithmException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return new Pair(hashedPassword, salt);
     }
 
     // options by user input
@@ -64,14 +115,13 @@ public class password_uppgift1 {
         Scanner input = new Scanner(System.in); // init scanner
         String username = "";
         String password = "";
-        String dbUserExists = "";
-        int allowed = 1;
+        int dbUserExists = 0;
         System.out.println("Användarnamn:");
         if (input.hasNextLine()) {
             username = input.nextLine().trim(); // remove newlines and whitespace
-            dbUserExists = dbGetUser(getUserSQL, username, "register");
+            dbUserExists = dbGetUser(getUserSQL, username);
         }
-        if (username.length() > 0 && username.equals(dbUserExists)) {
+        if (username.length() > 0 && dbUserExists == 1) {
             System.out.println("Användaren finns redan.");
         }
         else {
@@ -81,7 +131,7 @@ public class password_uppgift1 {
             }
 
             if (username.length() > 0 && password.length() > 0) { // save if not empty
-                if (dbAction(regUserSQL, username, password, allowed)) {
+                if (dbReg(regUserSQL, username, password)) {
                     System.out.println("Användaren har registrerats, du kan nu logga in.");
                 }
             }
@@ -99,19 +149,19 @@ public class password_uppgift1 {
         int maxAttempts = 3; // max number of attempts
         String writtenUsername = "";
         String writtenPass; // declare the input string
-        String dbPass = ""; // is never set to "" because we check for hasNextLine
+        int dbCheckUser = 1; // is never set to "" because we check for hasNextLine
         
         System.out.println("Logga in. Skriv användarnamn:");
         
         if (input.hasNextLine()) {
             writtenUsername = input.nextLine();
-            dbPass = dbGetUser(getPassSQL, writtenUsername, "login");
+            dbCheckUser = dbGetUser(getUserSQL, writtenUsername);
         }
 
-        if (dbPass.length() == 0) {
+        if (dbCheckUser == 2) {
             System.out.println("Användaren finns inte");
         }
-        else if (dbPass.equals("Du har försökt logga in felaktigt för många gånger, utstängd!")) { // not very pretty but unlikely to be set as password, could be checked with a global bool or something otherwise
+        else if (dbCheckUser == 0) { 
             System.out.println("Du har försökt logga in felaktigt för många gånger, utstängd!");
         }
         else {
@@ -119,7 +169,8 @@ public class password_uppgift1 {
 
             while (numberOfAttempts < maxAttempts) { // retry until maxattemps is reached
                 writtenPass = input.nextLine(); // read input
-                if (writtenPass.equals(dbPass)) { // compare string
+                
+                if (comparePasswords(getPassSQL, writtenUsername, writtenPass)) { // compare string
                     input.close(); // close input
                     exit("Rätt lösenord.");
                 }
@@ -128,64 +179,102 @@ public class password_uppgift1 {
                     numberOfAttempts++; // inc. attempts
                 }
             }
-            dbAction(banUserSQL, writtenUsername, "", 0);
+            dbBan(banUserSQL, writtenUsername, 0);
             System.out.println("För många försök, ditt konto har blivit spärrat.");
         }
         showOptions();
     }
 
-    // get users password
-    private String dbGetUser(String sql, String username, String action) {
+    // get input password and compare with db pass using db salt
+    private boolean comparePasswords (String sql, String username, String password) {
+        byte[] dbPass = null;
+        byte[] dbSalt = null;
+        try (Connection conn = this.dbGet(dbPath);
+            PreparedStatement pstmt = conn.prepareStatement(sql)) { // prepare statement to avoid sql injection
+            pstmt.setString(1, username);
+            ResultSet rs = pstmt.executeQuery();            
+            while (rs.next()) { // loop through results
+                dbSalt = rs.getBytes("salt");
+                dbPass = rs.getBytes("password");
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        
+        Pair userPass = hashPassword(password, dbSalt);
+        byte[] hashedUserPass = userPass.getHashedPassword();
+
+        if (Arrays.equals(hashedUserPass, dbPass)) {
+            return true;
+        } 
+        else {
+            return false;
+        }
+    }
+
+    // get user details
+    private int dbGetUser(String sql, String username) {
         int allowed = -1; // init with something not 0 or 1
-        String password = "";
         String dbUsername = "";
         try (Connection conn = this.dbGet(dbPath);
             PreparedStatement pstmt = conn.prepareStatement(sql)) { // prepare statement to avoid sql injection
             pstmt.setString(1, username);
             ResultSet rs = pstmt.executeQuery();            
             while (rs.next()) { // loop through results
-                if (action.equals("login")) {
-                    allowed = rs.getInt("allowed");
-                    password = rs.getString("password");    
-                }
-                else {
-                    dbUsername = rs.getString("username");
-                }
+                allowed = rs.getInt("allowed");
+                dbUsername = rs.getString("username");
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-        if (allowed == 0) {
-            return "Du har försökt logga in felaktigt för många gånger, utstängd!"; 
+        if (allowed == 0) { // user banned
+            return 0; 
         }
-        else if (username.equals(dbUsername)) { // username is only selected when trying to register user, won't be returned when checking password
-            return username;
+        else if (username.equals(dbUsername)) { // user exists, username is only selected when trying to register user, won't be returned when checking password
+            return 1;
         }
         else {
-            return password;
+            return 2;
         }
     }
 
-    // save and ban user
-    private boolean dbAction(String sql, String username, String password, int allowed) {
+    // register user
+    private boolean dbReg(String sql, String username, String password) {
         boolean action = false;
+        Pair pair = hashPassword(password, null);
+        byte[] hashedPass = pair.getHashedPassword();
+        byte[] salt = pair.getSalt();
         try (Connection conn = this.dbGet(dbPath);
             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, username);
-            pstmt.setString(2, password);
-            pstmt.setInt(3, allowed);
-            if (allowed == 0) {
-                pstmt.setString(4, username); // additional query var when banning user (where user =)
-            }
+            pstmt.setBytes(2, hashedPass);
+            pstmt.setBytes(3, salt);
+            
             int count = pstmt.executeUpdate();
-            action = (count > 0);
+            action = (count > 0); // confirm execute was successful
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
         return action;
     }
 
-    // make db and set up table
+    // ban user
+    private boolean dbBan(String sql, String username, int allowed) {
+        boolean action = false;
+        try (Connection conn = this.dbGet(dbPath);
+            PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            pstmt.setInt(2, allowed);
+            pstmt.setString(3, username); // additional query var when banning user (where user =)
+            int count = pstmt.executeUpdate();
+            action = (count > 0); // confirm execute was successful
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return action;
+    }    
+
+    // make db and set up table if it doesn't exist and return connection
     private Connection dbGet(String dbPath) {
         Connection conn = null;
         try {
