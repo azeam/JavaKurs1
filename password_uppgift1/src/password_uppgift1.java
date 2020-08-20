@@ -27,7 +27,7 @@ final class Pair {
 
 public class password_uppgift1 {
     // sql path and queries, do not need to be "global" but easier to overview from here (for now)
-    static String dbPath = "jdbc:sqlite:db/users.sqlite"; 
+    static String dbPath = "jdbc:sqlite:users.sqlite"; 
     String getPassSQL = "SELECT password, salt FROM users WHERE username=?"; 
     String getUserSQL = "SELECT username, allowed FROM users WHERE username=?";
     String banUserSQL = "UPDATE users SET allowed=? WHERE username=?"; 
