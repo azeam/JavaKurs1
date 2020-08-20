@@ -30,7 +30,7 @@ public class password_uppgift1 {
     static String dbPath = "jdbc:sqlite:db/users.sqlite"; 
     String getPassSQL = "SELECT password, salt FROM users WHERE username=?"; 
     String getUserSQL = "SELECT username, allowed FROM users WHERE username=?";
-    String banUserSQL = "UPDATE users SET username=?, allowed=? WHERE username=?"; 
+    String banUserSQL = "UPDATE users SET allowed=? WHERE username=?"; 
     String regUserSQL = "INSERT INTO users (username, password, salt) VALUES (?, ?, ?);";
     String makeTableSQL = "CREATE TABLE IF NOT EXISTS users (id integer PRIMARY KEY, username text NOT NULL UNIQUE, password blob NOT NULL, salt blob NOT NULL, allowed integer DEFAULT 1);";
 
@@ -81,10 +81,7 @@ public class password_uppgift1 {
     private void showOptions() {
         Scanner input = new Scanner(System.in); // init scanner
         
-        System.out.println("Vad vill du göra?");
-        System.out.println("[0] Registrera användare");
-        System.out.println("[1] Logga in");
-        System.out.println("[2] Avsluta");
+        System.out.println("Vad vill du göra?\n[0] Registrera användare\n[1] Logga in\n[2] Avsluta");
 
         if(input.hasNextInt()) {
            int selected = input.nextInt();
@@ -147,9 +144,10 @@ public class password_uppgift1 {
         Scanner input = new Scanner(System.in); // init scanner
         int numberOfAttempts = 0;
         int maxAttempts = 3; // max number of attempts
+        int dbCheckUser = 1; // any not 0 or 2
         String writtenUsername = "";
         String writtenPass; // declare the input string
-        int dbCheckUser = 1; // is never set to "" because we check for hasNextLine
+        
         
         System.out.println("Logga in. Skriv användarnamn:");
         
@@ -189,6 +187,7 @@ public class password_uppgift1 {
     private boolean comparePasswords (String sql, String username, String password) {
         byte[] dbPass = null;
         byte[] dbSalt = null;
+        byte[] hashedUserPass = null;
         try (Connection conn = this.dbGet(dbPath);
             PreparedStatement pstmt = conn.prepareStatement(sql)) { // prepare statement to avoid sql injection
             pstmt.setString(1, username);
@@ -201,10 +200,12 @@ public class password_uppgift1 {
             System.out.println(e.getMessage());
         }
         
-        Pair userPass = hashPassword(password, dbSalt);
-        byte[] hashedUserPass = userPass.getHashedPassword();
+        if (dbPass != null && dbSalt != null) {
+            Pair userPass = hashPassword(password, dbSalt);
+            hashedUserPass = userPass.getHashedPassword();
+        }
 
-        if (Arrays.equals(hashedUserPass, dbPass)) {
+        if (Arrays.equals(hashedUserPass, dbPass) && dbPass != null && dbSalt != null) {
             return true;
         } 
         else {
@@ -241,9 +242,9 @@ public class password_uppgift1 {
     // register user
     private boolean dbReg(String sql, String username, String password) {
         boolean action = false;
-        Pair pair = hashPassword(password, null);
-        byte[] hashedPass = pair.getHashedPassword();
-        byte[] salt = pair.getSalt();
+        Pair hashReg = hashPassword(password, null);
+        byte[] hashedPass = hashReg.getHashedPassword();
+        byte[] salt = hashReg.getSalt();
         try (Connection conn = this.dbGet(dbPath);
             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, username);
@@ -263,9 +264,8 @@ public class password_uppgift1 {
         boolean action = false;
         try (Connection conn = this.dbGet(dbPath);
             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, username);
-            pstmt.setInt(2, allowed);
-            pstmt.setString(3, username); // additional query var when banning user (where user =)
+            pstmt.setInt(1, allowed);
+            pstmt.setString(2, username); 
             int count = pstmt.executeUpdate();
             action = (count > 0); // confirm execute was successful
         } catch (SQLException e) {
