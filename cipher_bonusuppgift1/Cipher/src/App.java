@@ -3,9 +3,9 @@ public class App {
         String str = "welcome to java programming"; // cipher is +10/-16
         char[] buffer = new char[str.length()];
         for(int i=0; i < str.length();i++){
-
             int input = (int) str.charAt(i); // map char in string to decimal value
-            if (input == 32 || (input >= 97 && input <=122)) { // only print lowercase
+            if (input == 32 || (input >= 97 && input <=122)) { // only print lowercase (ascii 97-122)
+                // java switches can't use operators, using if/else
                 if (input == 32) {
                     buffer[i] = ' ';
                     System.out.println(" "); // print space instead of null
