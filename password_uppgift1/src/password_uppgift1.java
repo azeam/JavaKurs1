@@ -51,7 +51,7 @@ public class password_uppgift1 {
 		MessageDigest md;
 		byte[] hashedPassword = null;
 		try {
-			// Select the message digest for the hash computation -> SHA-256
+			// Select the message digest for the hash computation
 			md = MessageDigest.getInstance("SHA-512");
 
 			if (salt == null) { // generate pass, for registering, otherwise check salt from db
@@ -85,19 +85,19 @@ public class password_uppgift1 {
 			if(input.hasNextInt()) {
 				int selected = input.nextInt();
 				switch (selected) {
-						case 0: {
-							registerUser(input); // cannot be static, input cache will stick or cannot be closed and re-opened
-							break;
-						}
-						case 1: {
-							loginUser(input); // cannot be static, input cache will stick or cannot be closed and re-opened 
-							break;
-						}
-						case 2: {
-							exit(input, "Programmet avslutas.");
-							break;
-						}
+					case 0: {
+						registerUser(input); 
+						break;
 					}
+					case 1: {
+						loginUser(input); 
+						break;
+					}
+					case 2: {
+						exit(input, "Programmet avslutas.");
+						break;
+					}
+				}
 			}
 			else {
 				System.out.println("Välj ett av alternativen (skriv en siffra).");
