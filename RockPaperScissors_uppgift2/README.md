@@ -12,4 +12,8 @@
 
 ## Dokumentation
 
-Online multiplayer sten-sax-påse. Som användare startar man Client.java med ip-adress/host till servern som enda argument `java Client.java 123.123.321.321`. Om inga andra användare finns anslutna spelar man automatiskt mot datorn istället.
+Online multiplayer sten-sax-påse. Som användare startar man Client.java med ip-adress/host till servern som enda argument 
+
+`java Client.java 123.123.321.321`. 
+
+Om inga andra användare finns anslutna spelar man automatiskt mot datorn istället.
