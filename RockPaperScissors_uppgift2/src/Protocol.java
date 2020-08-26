@@ -50,8 +50,6 @@ public class Protocol {
 
     private String compareWeapons(String opName, String opWeaponName, int opWeapon, int weaponType) {
         String output = opName + " chose " + opWeaponName + ";;;";
-        System.out.println(opWeapon);
-        System.out.println(weaponType);
         if (opWeapon == weaponType) {
             output += "you draw against " + opName + " (0 points);;;";
         }
@@ -98,6 +96,7 @@ public class Protocol {
         String output = "";
         if (users.size() == 1) { // only user online, play against computer
             int randomNum = ThreadLocalRandom.current().nextInt(0, 2 + 1);
+            output += "No other opponents, battle against computer;;;";
             battleground.put("Computer", randomNum);
         }
         else {
@@ -172,12 +171,13 @@ public class Protocol {
         char rock = 0x270A;
         char paper = 0x270B;
         char scissors = 0x270C;
-        // Unicode RPC symbols, unlikely to work under Windows, only use for Linux
+        
         String RPC = Character.toString(rock) + " " + Character.toString(paper) + " " + Character.toString(scissors); 
         String output = "";
         String buffer = ""; // need a buffer to be able to print multilines from loop
 
         if (state == START) {
+            // Unicode RPC symbols, unlikely to work under Windows, only use for Linux
             if (System.getProperty("os.name").startsWith("Linux")) {
                 buffer = "Welcome to MMO " + RPC + " 2020!;;;";
             }
@@ -186,7 +186,6 @@ public class Protocol {
             }
             buffer += "Quit the game at any time by writing \"quit\";;;;;;";
             buffer += users.size() + " users online:;;;";
-            // TODO: if users size == 0, option to play against computer
 
             // print all online users
             for (String connectedName : users) {

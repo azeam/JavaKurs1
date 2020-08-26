@@ -3,12 +3,11 @@ import java.net.*;
  
 public class Client {
     public static void main(String[] args) throws IOException {
-        String host = "213.64.134.25";
         int portNumber = 6666;
         String newline = System.getProperty("line.separator"); // os independent newline
 
         try (
-            Socket socket = new Socket(host, portNumber);
+            Socket socket = new Socket(args[0], portNumber);
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader serverResponse = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         ) {
@@ -48,10 +47,10 @@ public class Client {
             
             
         } catch (UnknownHostException e) {
-            System.err.println("Don't know about host " + host);
+            System.err.println("Server at " + args[0] + " not found.");
             System.exit(1);
         } catch (IOException e) {
-            System.err.println("Couldn't get I/O for the connection to " + host);
+            System.err.println("Couldn't get I/O for the connection to " + args[0]);
             System.exit(1);
         }
     }
