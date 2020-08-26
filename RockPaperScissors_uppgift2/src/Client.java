@@ -3,7 +3,7 @@ import java.net.*;
  
 public class Client {
     public static void main(String[] args) throws IOException {
-        String host = "127.0.0.1";
+        String host = "213.64.134.25";
         int portNumber = 6666;
         String newline = System.getProperty("line.separator"); // os independent newline
 
@@ -22,7 +22,7 @@ public class Client {
                 
                 if (!fromServer.equals("Weapon chosen. Waiting for other players.")) {
                     fromUser = input.readLine();
-                    if (fromUser.equalsIgnoreCase("quit") || fromUser.equalsIgnoreCase("exit")) {
+                    if (fromUser.equalsIgnoreCase("quit") || fromUser.equalsIgnoreCase("exit") || fromServer.equalsIgnoreCase("Bye.")) { 
                         break;
                     }
                     if (fromUser != null) {
@@ -31,7 +31,6 @@ public class Client {
                 }
                 else {
                     int sleepTime = 5;
-                    
                     while (sleepTime > 0 && fromServer.equals("Weapon chosen. Waiting for other players.")) { 
                         System.out.println(sleepTime + "...");
                         try {

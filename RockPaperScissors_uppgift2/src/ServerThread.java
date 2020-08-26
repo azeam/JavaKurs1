@@ -36,10 +36,11 @@ public class ServerThread extends Thread {
                 
                 while ((input = in.readLine()) != null) { // read client input
                     output = communicate.processInput(input, users, scoreboard, battleground); // get server response
-                    out.println(output);
-                    if (input.equalsIgnoreCase("quit") || input.equalsIgnoreCase("exit")) { // exit loop on quit
+                    
+                    if (input.equalsIgnoreCase("quit") || input.equalsIgnoreCase("exit") || output.equals("Bye.")) { // exit loop on quit
                         break;
                     }
+                    out.println(output);
                 }
             }
             catch (IOException e) {

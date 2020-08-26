@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 // based on the knock knock tutorial from Oracle, https://docs.oracle.com/javase/tutorial/networking/sockets/clientServer.html
 public class Protocol {
@@ -18,7 +19,6 @@ public class Protocol {
     private int state = START;
 
     private String glName = "";
-    private String glWeapon = "";
     private int glScore = 0;
 
     // sort scoreboard by score, from
@@ -42,62 +42,82 @@ public class Protocol {
         return temp;
     }
 
-    private String checkOpponents(HashMap<String, Integer> battleground, String weaponName, int weaponType, HashMap<String, Integer> scoreboard) {
-        String output = "";
-        
-        for(Map.Entry<String, Integer> userResult : battleground.entrySet()) {
-            String opName = userResult.getKey();
-            int opWeapon = userResult.getValue();
-            String opWeaponName = getWeaponName(opWeapon);
-            
-            if (!glName.equals(opName)) {
-                output += opName + " chose " + opWeaponName + ";;;";
-                switch (weaponType) {
-                    case 0: // user rock
-                        switch (opWeapon) {
-                            case 1: // op paper
-                                output += opName + " beats you (-1 points);;;";
-                                glScore--;
-                                break;
-                            case 2: // op scissors
-                                output += "you beat " + opName + " (+1 points);;;";
-                                glScore++;
-                                break;
-                        }
-                        break;
-                    case 1: // user paper
-                        switch (opWeapon) {
-                            case 0: // op rock
-                                output += "you beat " + opName + " (+1 points);;;";
-                                glScore++;
-                                break;
-                            case 2: // op scissors
-                                output += opName + " beats you (-1 points);;;";
-                                glScore--;
-                                break;
-                        }
-                        break;
-                    case 2: // user scissors
-                        switch (opWeapon) {
-                            case 0: // op rock
-                                output += opName + " beats you (-1 points);;;";
-                                glScore--;
-                                break;
-                            case 1: // op paper
-                                output += "you beat " + opName + " (+1 points);;;";
-                                glScore++;
-                                break;
-                        }
-                        break;
-                    default: // same, draw
-                        output += "you draw against " + opName + " (0 points);;;";
-                }
+    // random weapon (for computer)
+    public double getRandomWeapon() { 
+        double weapon = (int)(Math.random()*((2)+1))+0;
+        return weapon;
+    }
+
+    private String compareWeapons(String opName, String opWeaponName, int opWeapon, int weaponType) {
+        String output = opName + " chose " + opWeaponName + ";;;";
+        System.out.println(opWeapon);
+        System.out.println(weaponType);
+        if (opWeapon == weaponType) {
+            output += "you draw against " + opName + " (0 points);;;";
+        }
+        else {
+            switch (weaponType) {
+                case 0: // user rock
+                    if (opWeapon == 1) {
+                        output += opName + " beats you (-1 points);;;";
+                        glScore--;
+                    }
+                    else if (opWeapon == 2) {
+                        output += "you beat " + opName + " (+1 points);;;";
+                        glScore++;
+                    }
+                    break;
+                case 1: // user paper
+                    if (opWeapon == 0) {
+                        output += "you beat " + opName + " (+1 points);;;";
+                        glScore++;
+                    }
+                    else if (opWeapon == 2) {
+                        output += opName + " beats you (-1 points);;;";
+                        glScore--;
+                    }
+                    break;
+                case 2: // user scissors
+                    if (opWeapon == 0) {
+                        output += opName + " beats you (-1 points);;;";
+                        glScore--;
+                    }
+                    else if (opWeapon == 1) {
+                        output += "you beat " + opName + " (+1 points);;;";
+                        glScore++;
+                    }
+                    break;
             }
         }
         return output;
     }
 
-    private String calcScore(HashMap<String, Integer> battleground, HashMap<String, Integer> scoreboard) {
+    // get opponent data
+    private String checkOpponents(HashSet<String> users, HashMap<String, Integer> battleground, int weaponType,
+            HashMap<String, Integer> scoreboard) {
+        String output = "";
+        if (users.size() == 1) { // only user online, play against computer
+            int randomNum = ThreadLocalRandom.current().nextInt(0, 2 + 1);
+            battleground.put("Computer", randomNum);
+        }
+        else {
+            battleground.remove("Computer");
+        }
+        for(Map.Entry<String, Integer> userResult : battleground.entrySet()) { // loop through battleboard
+            String opName = userResult.getKey();
+            int opWeapon = userResult.getValue();
+            String opWeaponName = getWeaponName(opWeapon);
+            
+            if (!glName.equals(opName)) { // compare users choice with opponents and adjust score
+                output = compareWeapons(opName, opWeaponName, opWeapon, weaponType);
+            }
+        }
+        return output;
+    }
+
+    // 
+    private String calcScore(HashSet<String> users, HashMap<String, Integer> battleground,
+            HashMap<String, Integer> scoreboard) {
         String output = "";
         String weaponName = "";
         int weapon = - 1;
@@ -108,14 +128,18 @@ public class Protocol {
         }
         weaponName = getWeaponName(weapon); 
         output += "You chose " + weaponName + ";;;";
-        output += checkOpponents(battleground, weaponName, weapon, scoreboard);
+        output += checkOpponents(users, battleground, weapon, scoreboard);
 
         output += "Score: " + glScore + " points.;;;";
-        synchronized (scoreboard) {
-            scoreboard.put(glName, scoreboard.get(glName) + glScore);
+        synchronized (scoreboard) { // thread safe update scoreboard
+            int curScore = 0; 
+            if (scoreboard.get(glName) != null) { // if user exists in scoreboard, update score, otherwise add
+                curScore = scoreboard.get(glName);
+            }
+            scoreboard.put(glName, curScore + glScore);
         }
         glScore = 0; // reset score
-        output += "Play again? [Y]/[n]"; 
+        output += ";;;Play again? [Y]/[n]"; 
         return output; 
     }
 
@@ -148,21 +172,19 @@ public class Protocol {
         char rock = 0x270A;
         char paper = 0x270B;
         char scissors = 0x270C;
-
-        String RPC = Character.toString(rock) + " " + Character.toString(paper) + " " + Character.toString(scissors); // Unicode
-                                                                                                                      // RPC
-                                                                                                                      // symbols,
-                                                                                                                      // unlikely
-                                                                                                                      // to
-                                                                                                                      // work
-                                                                                                                      // under
-                                                                                                                      // Windows
+        // Unicode RPC symbols, unlikely to work under Windows, only use for Linux
+        String RPC = Character.toString(rock) + " " + Character.toString(paper) + " " + Character.toString(scissors); 
         String output = "";
         String buffer = ""; // need a buffer to be able to print multilines from loop
 
         if (state == START) {
-            buffer = "Welcome to MMO " + RPC + " 2020!;;;";
-            buffer += "Quit the game at any time by writing \"quit\";;;";
+            if (System.getProperty("os.name").startsWith("Linux")) {
+                buffer = "Welcome to MMO " + RPC + " 2020!;;;";
+            }
+            else {
+                buffer = "Welcome to MMO RPC 2020!;;;";
+            }
+            buffer += "Quit the game at any time by writing \"quit\";;;;;;";
             buffer += users.size() + " users online:;;;";
             // TODO: if users size == 0, option to play against computer
 
@@ -176,7 +198,7 @@ public class Protocol {
                     buffer += score.getKey() + ": " + score.getValue() + " points;;;";
                 }
             }
-            buffer += "Your name:";
+            buffer += ";;;Your name:";
             output = buffer;
             state = ENTERNAME;
         } else if (state == ENTERNAME) {
@@ -187,7 +209,7 @@ public class Protocol {
                                                                                       // doesn't exist
                         users.add(glName);
                         output = "User " + glName + " registered. "
-                                + "Let's play, choose weapon - Rock [0], Paper [1] or Scissors [2]";
+                                + ";;;Let's play, choose weapon - Rock [0], Paper [1] or Scissors [2]";
                         state = WEAPONCHOSEN;
                     } else {
                         output = "Not a valid name, try again.";
@@ -201,16 +223,13 @@ public class Protocol {
         } else if (state == WEAPONCHOSEN) {
             int weapon = -1;
             switch (input.toLowerCase()) {
-                case "rock":
-                case "0":
+                case "rock": case "0": case "r":
                     weapon = 0;
                     break;
-                case "paper":
-                case "1":
+                case "paper": case "1": case "p":
                     weapon = 1;
                     break;
-                case "scissors":
-                case "2":
+                case "scissors": case "2": case "s":
                     weapon = 2;
                     break;
             }
@@ -222,11 +241,10 @@ public class Protocol {
                     battleground.put(glName, weapon);
                 }
                 output = "Weapon chosen. Waiting for other players.";
-                
                 state = BATTLE;
             }
         } else if (state == BATTLE) {
-            output = calcScore(battleground, scoreboard);
+            output = calcScore(users, battleground, scoreboard);
             state = REMATCH;
         } else if (state == REMATCH) {
             if (input.equalsIgnoreCase("n") || input.equalsIgnoreCase("no")) {
