@@ -195,7 +195,7 @@ public class Protocol {
         } else if (state == ENTERNAME) {
             if (input.length() > 0) {
                 glName = input;
-                synchronized (users) { // add user thread safely
+                synchronized (users) { // add user thread-safely
                     if (glName != null && glName.length() > 0 && !users.contains(glName)) { // add to hashmap if username
                                                                                       // doesn't exist
                         users.add(glName);

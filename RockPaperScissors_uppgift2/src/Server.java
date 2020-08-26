@@ -9,7 +9,7 @@ public class Server {
         int portNumber = 6666; // > 1023 does not require root permission
         ServerSocket serverSocket = null;
 
-        // these probably have to be get/set in server before forking new threads?
+        // these maps need to be accessible to all users between threads
         HashSet<String> users = new HashSet<String>();
         HashMap<String, Integer> scoreboard = new HashMap<String, Integer>();
         HashMap<String, Integer> battleground = new HashMap<String, Integer>();
@@ -22,7 +22,7 @@ public class Server {
         while (true) {
             try {
                 Socket clientSocket = serverSocket.accept();
-                // new thread for each client, this way multiple clients can connect
+                // spawn a new thread for each client, this way multiple clients can connect
                 new ServerThread(clientSocket, users, scoreboard, battleground).start();
             } catch (IOException e) {
                 System.out.println("I/O error: " + e);

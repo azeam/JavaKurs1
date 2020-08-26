@@ -12,7 +12,7 @@ public class ServerThread extends Thread {
         private HashMap<String, Integer> scoreboard;
         private HashMap<String, Integer> battleground;
             
-        // get client socket
+        // get socket and serverwide maps 
         public ServerThread(Socket clientSocket, HashSet<String> users, HashMap<String, Integer> scoreboard, HashMap<String, Integer> battleground) {
             this.socket = clientSocket;
             this.users = users;
