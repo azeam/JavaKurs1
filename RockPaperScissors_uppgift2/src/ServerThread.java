@@ -3,13 +3,21 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.HashSet;
 
 public class ServerThread extends Thread {
         protected Socket socket;
+        private HashSet<String> users;
+        private HashMap<String, Integer> scoreboard;
+        private HashMap<String, Integer> battleground;
             
         // get client socket
-        public ServerThread(Socket clientSocket) {
+        public ServerThread(Socket clientSocket, HashSet<String> users, HashMap<String, Integer> scoreboard, HashMap<String, Integer> battleground) {
             this.socket = clientSocket;
+            this.users = users;
+            this.scoreboard = scoreboard;
+            this.battleground = battleground;
         }
     
         // new thread 
@@ -22,12 +30,12 @@ public class ServerThread extends Thread {
             ) {
                 // start communication protocol between server and client
                 Protocol communicate = new Protocol();
-                output = communicate.processInput(null);
+                output = communicate.processInput(null, users, scoreboard, battleground);
                 
                 out.println(output); // output from server
                 
                 while ((input = in.readLine()) != null) { // read client input
-                    output = communicate.processInput(input); // get server response
+                    output = communicate.processInput(input, users, scoreboard, battleground); // get server response
                     out.println(output);
                     if (input.equalsIgnoreCase("quit") || input.equalsIgnoreCase("exit")) { // exit loop on quit
                         break;
