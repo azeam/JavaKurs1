@@ -42,16 +42,11 @@ public class Protocol {
         return temp;
     }
 
-    // random weapon (for computer)
-    public double getRandomWeapon() { 
-        double weapon = (int)(Math.random()*((2)+1))+0;
-        return weapon;
-    }
-
+    // compare users choice against computer or other players
     private String compareWeapons(String opName, String opWeaponName, int opWeapon, int weaponType) {
         String output = opName + " chose " + opWeaponName + ";;;";
         if (opWeapon == weaponType) {
-            output += "you draw against " + opName + " (0 points);;;";
+            output += "You draw against " + opName + " (0 points);;;";
         }
         else {
             switch (weaponType) {
@@ -61,13 +56,13 @@ public class Protocol {
                         glScore--;
                     }
                     else if (opWeapon == 2) {
-                        output += "you beat " + opName + " (+1 points);;;";
+                        output += "You beat " + opName + " (+1 points);;;";
                         glScore++;
                     }
                     break;
                 case 1: // user paper
                     if (opWeapon == 0) {
-                        output += "you beat " + opName + " (+1 points);;;";
+                        output += "You beat " + opName + " (+1 points);;;";
                         glScore++;
                     }
                     else if (opWeapon == 2) {
@@ -81,7 +76,7 @@ public class Protocol {
                         glScore--;
                     }
                     else if (opWeapon == 1) {
-                        output += "you beat " + opName + " (+1 points);;;";
+                        output += "You beat " + opName + " (+1 points);;;";
                         glScore++;
                     }
                     break;
@@ -95,40 +90,38 @@ public class Protocol {
             HashMap<String, Integer> scoreboard) {
         String output = "";
         if (users.size() == 1) { // only user online, play against computer
-            int randomNum = ThreadLocalRandom.current().nextInt(0, 2 + 1);
-            output += "No other opponents, battle against computer;;;";
-            battleground.put("Computer", randomNum);
+            int randomNum = ThreadLocalRandom.current().nextInt(0, 2 + 1); // random between 0 and 2
+            output += "No other players online, battle against computer;;;";
+            synchronized (battleground) {
+                battleground.put("Computer", randomNum);
+            }
         }
         else {
-            battleground.remove("Computer");
+            synchronized (battleground) {
+                battleground.remove("Computer"); // if another user connects, remove computer from battleground
+            }
         }
         for(Map.Entry<String, Integer> userResult : battleground.entrySet()) { // loop through battleboard
             String opName = userResult.getKey();
             int opWeapon = userResult.getValue();
             String opWeaponName = getWeaponName(opWeapon);
             
-            if (!glName.equals(opName)) { // compare users choice with opponents and adjust score
+            if (!glName.equals(opName)) { // compare users choice with opponents (not against himself) and adjust score
                 output = compareWeapons(opName, opWeaponName, opWeapon, weaponType);
             }
         }
         return output;
     }
 
-    // 
+    // start battle and then update score and ask for re-match
     private String calcScore(HashSet<String> users, HashMap<String, Integer> battleground,
             HashMap<String, Integer> scoreboard) {
         String output = "";
         String weaponName = "";
-        int weapon = - 1;
-        for(Map.Entry<String, Integer> userResult : battleground.entrySet()) {
-            if (userResult.getKey().equals(glName)) {
-                weapon = userResult.getValue();
-            }
-        }
-        weaponName = getWeaponName(weapon); 
+        int weapon = battleground.get(glName); // get users chosen weapon from battleground
+        weaponName = getWeaponName(weapon); // int to weapon name as string
         output += "You chose " + weaponName + ";;;";
         output += checkOpponents(users, battleground, weapon, scoreboard);
-
         output += "Score: " + glScore + " points.;;;";
         synchronized (scoreboard) { // thread safe update scoreboard
             int curScore = 0; 
@@ -142,6 +135,7 @@ public class Protocol {
         return output; 
     }
 
+    // print weapon names
     private String getWeaponName(int weapon) {
         String weaponName = "";
         switch(weapon) {
@@ -154,13 +148,11 @@ public class Protocol {
             case 2:
                 weaponName = "Scissors";
                 break;
-            default: 
-                weaponName = "Nothing";
-                break; 
         }
         return weaponName;
     }
 
+    // communication between server and client
     public String processInput(String input, HashSet<String> users, HashMap<String, Integer> scoreboard,
             HashMap<String, Integer> battleground) {
         if (input != null) {

@@ -3,9 +3,15 @@ import java.net.*;
  
 public class Client {
     public static void main(String[] args) throws IOException {
+        if (args.length == 0) { // confirm host is set
+            System.out.println("Error - No server specified, start application with \"java Client.java 123.123.321.321\"");
+            System.exit(0);
+        }
+        
         int portNumber = 6666;
         String newline = System.getProperty("line.separator"); // os independent newline
 
+        // connect to socket
         try (
             Socket socket = new Socket(args[0], portNumber);
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
@@ -14,6 +20,8 @@ public class Client {
             String fromServer;
             String fromUser;
             BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
+
+            // communicate with server
             while ((fromServer = serverResponse.readLine()) != null) {
                 fromServer = fromServer.replaceAll(";;;", newline); // split string to newline in client, multilines from server messes things up...
                 
@@ -28,9 +36,9 @@ public class Client {
                         out.println(fromUser); // send user input to socket
                     }
                 }
-                else {
+                else { // very ugly but sort of functional, wait for other users to choose weapon
                     int sleepTime = 5;
-                    while (sleepTime > 0 && fromServer.equals("Weapon chosen. Waiting for other players.")) { 
+                    while (sleepTime > 0) { 
                         System.out.println(sleepTime + "...");
                         try {
                             Thread.sleep(1000);
@@ -40,8 +48,8 @@ public class Client {
                         }
                     }
                     System.out.println("Battle begins!");
-                    out.println("start"); // can be any string, not a pretty solution but not sure how else to make this work...
-                    sleepTime = 0; // reset counter for next round    
+                    out.println("start"); // can be any string, not a pretty solution but not sure how else to make this work (will make the state move forward)...
+                    sleepTime = 0; // reset counter for next round
                 }
             }
             
@@ -52,6 +60,6 @@ public class Client {
         } catch (IOException e) {
             System.err.println("Couldn't get I/O for the connection to " + args[0]);
             System.exit(1);
-        }
+        } 
     }
 }
