@@ -49,7 +49,6 @@ public class Client {
                     }
                     System.out.println("Battle begins!");
                     out.println("start"); // can be any string, not a pretty solution but not sure how else to make this work (will make the state move forward)...
-                    sleepTime = 0; // reset counter for next round
                 }
             }
             

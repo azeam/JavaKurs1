@@ -166,31 +166,33 @@ public class Protocol {
         
         String RPC = Character.toString(rock) + " " + Character.toString(paper) + " " + Character.toString(scissors); 
         String output = "";
-        String buffer = ""; // need a buffer to be able to print multilines from loop
 
         if (state == START) {
             // Unicode RPC symbols, unlikely to work under Windows, only use for Linux
             if (System.getProperty("os.name").startsWith("Linux")) {
-                buffer = "Welcome to MMO " + RPC + " 2020!;;;";
+                output = "Welcome to MMO " + RPC + "  2020!;;;";
             }
             else {
-                buffer = "Welcome to MMO RPC 2020!;;;";
+                output = "Welcome to MMO RPC 2020!;;;";
             }
-            buffer += "Quit the game at any time by writing \"quit\";;;;;;";
-            buffer += users.size() + " users online:;;;";
+            output += "Quit the game at any time by writing \"quit\";;;;;;";
+            output += users.size() + " users online:;;;";
 
             // print all online users
             for (String connectedName : users) {
-                buffer += connectedName + ";;;";
+                output += connectedName + ";;;";
             }
             if (sortedScoreboard.size() > 0) {
-                buffer += "Scoreboard:" + ";;;";
+                output += "Scoreboard:" + ";;;";
                 for (Map.Entry<String, Integer> score : sortedScoreboard.entrySet()) {
-                    buffer += score.getKey() + ": " + score.getValue() + " points;;;";
+                    output += score.getKey() + ": " + score.getValue() + " points;;;";
                 }
             }
-            buffer += ";;;Your name:";
-            output = buffer;
+            output += ";;;Your name:";
+            // TODO: here it would be best to remove users choice from battleground, but because of the ugly
+            // sleep it will cause the data to be removed before the other users see it if they start the battle later.
+            // This causes the battle data to stay in the battleground, meaning if the user waits at the Y/N prompt instead of
+            // continuing or quitting, the old data will stay for other users continuing
             state = ENTERNAME;
         } else if (state == ENTERNAME) {
             if (input.length() > 0) {
