@@ -250,9 +250,12 @@ public class Protocol {
                 }
                 output = "Bye.";
                 state = START;
-            } else {             
+            } else if (input.equalsIgnoreCase("y") || input.equalsIgnoreCase("yes") || input.isEmpty()) {             
                 output = "Let's play, choose weapon - Rock [0], Paper [1] or Scissors [2]"; 
                 state = WEAPONCHOSEN;                
+            }
+            else {
+                output = "Choose [Y]es or [n]o. Play again?"; 
             }
         }
         return output;
