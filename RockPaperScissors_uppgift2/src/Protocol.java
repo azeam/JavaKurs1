@@ -30,7 +30,7 @@ public class Protocol {
         // Sort the list
         Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
             public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
-                return (o1.getValue()).compareTo(o2.getValue());
+                return (o2.getValue()).compareTo(o1.getValue());
             }
         });
 
@@ -177,7 +177,7 @@ public class Protocol {
                 output = "Welcome to MMO " + RPS + "  2020!;;;";
             }
             else {
-                output = "Welcome to MMORPS 2020!;;;";
+                output = "Welcome to MMO RPS 2020!;;;";
             }
             output += "Quit the game at any time by writing \"quit\";;;;;;";
             output += users.size() + " users online:;;;";
