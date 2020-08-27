@@ -129,7 +129,7 @@ public class Protocol {
         }
         output += "Total score: " + totScore + " points.;;;";
         glScore = 0; // reset score
-        output += ";;;Play again? [Y]/[n]"; 
+        output += ";;;Play again? [Y]es [n]o"; 
         return output; 
     }
 
@@ -162,16 +162,16 @@ public class Protocol {
         char paper = 0x270B;
         char scissors = 0x270C;
         
-        String RPC = Character.toString(rock) + " " + Character.toString(paper) + " " + Character.toString(scissors); 
+        String RPS = Character.toString(rock) + " " + Character.toString(paper) + " " + Character.toString(scissors); 
         String output = "";
 
         if (state == START) {
-            // Unicode RPC symbols, unlikely to work under Windows, only use for Linux
+            // Unicode RPS symbols, unlikely to work under Windows, only use for Linux
             if (System.getProperty("os.name").startsWith("Linux")) {
-                output = "Welcome to MMO " + RPC + "  2020!;;;";
+                output = "Welcome to MMO " + RPS + "  2020!;;;";
             }
             else {
-                output = "Welcome to MMO RPC 2020!;;;";
+                output = "Welcome to MMORPS 2020!;;;";
             }
             output += "Quit the game at any time by writing \"quit\";;;;;;";
             output += users.size() + " users online:;;;";
@@ -181,9 +181,11 @@ public class Protocol {
                 output += connectedName + ";;;";
             }
             if (sortedScoreboard.size() > 0) {
-                output += "Scoreboard:" + ";;;";
+                int pos = 1;
+                output += ";;;Scoreboard:" + ";;;";
                 for (Map.Entry<String, Integer> score : sortedScoreboard.entrySet()) {
-                    output += score.getKey() + ": " + score.getValue() + " points;;;";
+                    output += pos + ". " + score.getKey() + " with " + score.getValue() + " points;;;";
+                    pos++;
                 }
             }
             output += ";;;Your name:";
@@ -195,12 +197,11 @@ public class Protocol {
             state = ENTERNAME;
         } else if (state == ENTERNAME) {
             if (input.length() > 0) {
-                glName = input;
                 synchronized (users) { // add user thread-safely
-                    if (glName != null && glName.length() > 0 && !users.contains(glName)) { // add to hashmap if username
-                                                                                      // doesn't exist
-                        users.add(glName);
-                        output = "User " + glName + " registered. "
+                    if (input != null && input.length() > 0 && !users.contains(input)) { // add to hashmap if username
+                        glName = input; // set globally because lazy...                  // doesn't exist
+                        users.add(input);
+                        output = "User " + input + " registered. "
                                 + ";;;Let's play, choose weapon - Rock [0], Paper [1] or Scissors [2]";
                         state = WEAPONCHOSEN;
                     } else {
