@@ -45,11 +45,21 @@ public class ServerThread extends Thread {
                     }
                     out.println(output);
                 }
+                try {
+                    socket.close();
+                } catch (IOException e1) {
+                    System.out.println("I/O error (Thread): " + e1);
+                }
             }
             catch (IOException e) {
                 System.out.println("I/O error (Thread): " + e);
                 users.remove(threadUser); // if user quits because of timeout, clear users list 
                 battleground.remove(threadUser); // if user quits because of timeout, clear battleground 
+                try {
+                    socket.close();
+                } catch (IOException e1) {
+                    System.out.println("I/O error (Thread): " + e1);
+                }
             } 
     }
 }
