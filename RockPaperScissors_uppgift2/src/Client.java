@@ -30,7 +30,8 @@ public class Client {
                 if (!fromServer.equals("Weapon chosen. Waiting for other players.")) {
                     fromUser = input.readLine();
                     if (fromUser.equalsIgnoreCase("quit") || fromUser.equalsIgnoreCase("exit") || fromServer.equalsIgnoreCase("Bye.")) { 
-                        break;
+                        System.out.println("Bye, see you again!");
+                        System.exit(0);
                     }
                     if (fromUser != null) {
                         out.println(fromUser); // send user input to socket
@@ -50,7 +51,7 @@ public class Client {
                     System.out.println("Battle begins!");
                     out.println("start"); // can be any string, not a pretty solution but not sure how else to make this work (will make the state move forward)...
                 }
-            }    
+            }
             System.out.println("You waited too long, please reconnect");
         } catch (UnknownHostException e) {
             System.err.println("Server at " + args[0] + " not found.");
