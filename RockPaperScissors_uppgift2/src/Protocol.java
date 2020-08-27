@@ -129,7 +129,13 @@ public class Protocol {
         }
         output += "Total score: " + totScore + " points.;;;";
         glScore = 0; // reset score
-        output += ";;;Play again? [Y]es [n]o"; 
+
+        // TODO: here it would be best to remove users choice from battleground, but because of the ugly
+        // sleep it will cause the data to be removed before the other users see it if they start the battle later.
+        // This causes the battle data to stay in the battleground, meaning if the user waits at the Y/N prompt instead of
+        // continuing or quitting, the old data will stay for the other users that continue playing
+        
+        output += ";;;Play again? [Y]es [n]o";
         return output; 
     }
 
@@ -189,11 +195,6 @@ public class Protocol {
                 }
             }
             output += ";;;Your name:";
-            // TODO: here it would be best to remove users choice from battleground, but because of the ugly
-            // sleep it will cause the data to be removed before the other users see it if they start the battle later.
-            // This causes the battle data to stay in the battleground, meaning if the user waits at the Y/N prompt instead of
-            // continuing or quitting, the old data will stay for the other users that continue playing
-
             state = ENTERNAME;
         } else if (state == ENTERNAME) {
             if (input.length() > 0) {
