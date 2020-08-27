@@ -45,42 +45,37 @@ public class Protocol {
     // compare users choice against computer or other players
     private String compareWeapons(String opName, String opWeaponName, int opWeapon, int weaponType) {
         String output = opName + " chose " + opWeaponName + ";;;";
+        int result = 1; // set to victory by default, this way the elseif is not necessary in the switch
         if (opWeapon == weaponType) {
             output += "You draw against " + opName + " (0 points);;;";
+            result = 0;
         }
-        else {
+        else { // only check if not draw
             switch (weaponType) {
                 case 0: // user rock
                     if (opWeapon == 1) {
-                        output += opName + " beats you (-1 points);;;";
-                        glScore--;
-                    }
-                    else if (opWeapon == 2) {
-                        output += "You beat " + opName + " (+1 points);;;";
-                        glScore++;
+                        result = -1; // set to loss
                     }
                     break;
                 case 1: // user paper
-                    if (opWeapon == 0) {
-                        output += "You beat " + opName + " (+1 points);;;";
-                        glScore++;
-                    }
-                    else if (opWeapon == 2) {
-                        output += opName + " beats you (-1 points);;;";
-                        glScore--;
+                    if (opWeapon == 2) {
+                        result = -1;
                     }
                     break;
                 case 2: // user scissors
                     if (opWeapon == 0) {
-                        output += opName + " beats you (-1 points);;;";
-                        glScore--;
-                    }
-                    else if (opWeapon == 1) {
-                        output += "You beat " + opName + " (+1 points);;;";
-                        glScore++;
+                        result = -1;
                     }
                     break;
             }
+        }
+        if (result == -1) {
+            output += opName + " beats you (-1 points);;;";
+            glScore--;
+        }
+        else if (result == 1) {
+            output += "You beat " + opName + " (+1 points);;;";
+            glScore++;
         }
         return output;
     }
@@ -107,7 +102,7 @@ public class Protocol {
             String opWeaponName = getWeaponName(opWeapon);
             
             if (!glName.equals(opName)) { // compare users choice with opponents (not against himself) and adjust score
-                output = compareWeapons(opName, opWeaponName, opWeapon, weaponType);
+                output += compareWeapons(opName, opWeaponName, opWeapon, weaponType);
             }
         }
         return output;
@@ -192,7 +187,8 @@ public class Protocol {
             // TODO: here it would be best to remove users choice from battleground, but because of the ugly
             // sleep it will cause the data to be removed before the other users see it if they start the battle later.
             // This causes the battle data to stay in the battleground, meaning if the user waits at the Y/N prompt instead of
-            // continuing or quitting, the old data will stay for other users continuing
+            // continuing or quitting, the old data will stay for the other users that continue playing
+
             state = ENTERNAME;
         } else if (state == ENTERNAME) {
             if (input.length() > 0) {
