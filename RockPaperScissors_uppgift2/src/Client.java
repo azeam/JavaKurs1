@@ -50,9 +50,8 @@ public class Client {
                     System.out.println("Battle begins!");
                     out.println("start"); // can be any string, not a pretty solution but not sure how else to make this work (will make the state move forward)...
                 }
-            }
-            
-            
+            }    
+            System.out.println("You waited too long, please reconnect");
         } catch (UnknownHostException e) {
             System.err.println("Server at " + args[0] + " not found.");
             System.exit(1);

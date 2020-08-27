@@ -22,7 +22,7 @@ public class ServerThread extends Thread {
     
         // new thread 
         public void run() {
-            String input, output;
+            String input, output, threadUser = "";
             try (
                 // 
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
@@ -33,10 +33,12 @@ public class ServerThread extends Thread {
                 output = communicate.processInput(null, users, scoreboard, battleground);
                 
                 out.println(output); // output from server
-                
                 while ((input = in.readLine()) != null) { // read client input
                     output = communicate.processInput(input, users, scoreboard, battleground); // get server response
-                    
+                    if (output.contains(" registered.")) {
+                        threadUser = output.split(" registered")[0];
+                        threadUser = threadUser.split("User")[1].trim();
+                    }
                     if (input.equalsIgnoreCase("quit") || input.equalsIgnoreCase("exit") || output.equals("Bye.")) { // exit loop on quit
                         break;
                     }
@@ -44,7 +46,9 @@ public class ServerThread extends Thread {
                 }
             }
             catch (IOException e) {
-                System.out.println("I/O error: " + e);
-            }
+                System.out.println("I/O error (Thread): " + e);
+                users.remove(threadUser); // if user quits because of timeout, clear users list 
+                battleground.remove(threadUser); // if user quits because of timeout, clear battleground 
+            } 
     }
 }

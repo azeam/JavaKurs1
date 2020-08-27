@@ -22,10 +22,12 @@ public class Server {
         while (true) {
             try {
                 Socket clientSocket = serverSocket.accept();
+                clientSocket.setSoTimeout(60000); // kick out user after 60 seconds of inactivity
+
                 // spawn a new thread for each client, this way multiple clients can connect
                 new ServerThread(clientSocket, users, scoreboard, battleground).start();
             } catch (IOException e) {
-                System.out.println("I/O error: " + e);
+                System.out.println("I/O error (Server): " + e);
             }
         }
     }
