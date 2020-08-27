@@ -43,15 +43,15 @@ public class Protocol {
     }
 
     // compare users choice against computer or other players
-    private String compareWeapons(String opName, String opWeaponName, int opWeapon, int weaponType) {
+    private String compareWeapons(String opName, String opWeaponName, int opWeapon, int userWeapon) {
         String output = opName + " chose " + opWeaponName + ";;;";
         int result = 1; // set to victory by default, this way the elseif is not necessary in the switch
-        if (opWeapon == weaponType) {
+        if (opWeapon == userWeapon) {
             output += "You draw against " + opName + " (0 points);;;";
             result = 0;
         }
         else { // only check if not draw
-            switch (weaponType) {
+            switch (userWeapon) {
                 case 0: // user rock
                     if (opWeapon == 1) {
                         result = -1; // set to loss
@@ -85,7 +85,7 @@ public class Protocol {
             HashMap<String, Integer> scoreboard) {
         String output = "";
         if (users.size() == 1) { // only user online, play against computer
-            int randomNum = ThreadLocalRandom.current().nextInt(0, 2 + 1); // random between 0 and 2
+            int randomNum = ThreadLocalRandom.current().nextInt(0, 3); // random between 0 and 2
             output += "No other players online, battle against computer;;;";
             synchronized (battleground) {
                 battleground.put("Computer", randomNum);
@@ -113,18 +113,21 @@ public class Protocol {
             HashMap<String, Integer> scoreboard) {
         String output = "";
         String weaponName = "";
+        int totScore = 0;
         int weapon = battleground.get(glName); // get users chosen weapon from battleground
         weaponName = getWeaponName(weapon); // int to weapon name as string
         output += "You chose " + weaponName + ";;;";
         output += checkOpponents(users, battleground, weapon, scoreboard);
-        output += "Score: " + glScore + " points.;;;";
+        output += "Round score: " + glScore + " points.;;;";
         synchronized (scoreboard) { // thread safe update scoreboard
             int curScore = 0; 
             if (scoreboard.get(glName) != null) { // if user exists in scoreboard, update score, otherwise add
                 curScore = scoreboard.get(glName);
             }
             scoreboard.put(glName, curScore + glScore);
+            totScore = scoreboard.get(glName);
         }
+        output += "Total score: " + totScore + " points.;;;";
         glScore = 0; // reset score
         output += ";;;Play again? [Y]/[n]"; 
         return output; 
