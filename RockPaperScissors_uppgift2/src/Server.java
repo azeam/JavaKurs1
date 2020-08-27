@@ -22,7 +22,7 @@ public class Server {
         while (true) {
             try {
                 Socket clientSocket = serverSocket.accept();
-                clientSocket.setSoTimeout(60000); // kick out user after 60 seconds of inactivity
+                clientSocket.setSoTimeout(30000); // kick out user after 30 seconds of inactivity
 
                 // spawn a new thread for each client, this way multiple clients can connect
                 new ServerThread(clientSocket, users, scoreboard, battleground).start();

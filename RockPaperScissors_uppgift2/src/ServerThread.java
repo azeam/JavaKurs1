@@ -40,6 +40,7 @@ public class ServerThread extends Thread {
                         threadUser = threadUser.split("User")[1].trim();
                     }
                     if (input.equalsIgnoreCase("quit") || input.equalsIgnoreCase("exit") || output.equals("Bye.")) { // exit loop on quit
+                        out.println(output); // send bye message to client before exit
                         break;
                     }
                     out.println(output);

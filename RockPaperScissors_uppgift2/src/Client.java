@@ -28,9 +28,11 @@ public class Client {
                 System.out.println(fromServer);
                 
                 if (!fromServer.equals("Weapon chosen. Waiting for other players.")) {
+                    if (fromServer.equalsIgnoreCase("Bye.")) { // needs to be checked before readline or client will wait for input
+                        System.exit(0);
+                    }
                     fromUser = input.readLine();
-                    if (fromUser.equalsIgnoreCase("quit") || fromUser.equalsIgnoreCase("exit") || fromServer.equalsIgnoreCase("Bye.")) { 
-                        System.out.println("Bye, see you again!");
+                    if (fromUser.equalsIgnoreCase("quit") || fromUser.equalsIgnoreCase("exit")) { 
                         System.exit(0);
                     }
                     if (fromUser != null) {
