@@ -53,6 +53,7 @@ public class ServerThread extends Thread {
             }
             catch (IOException e) {
                 System.out.println("I/O error (Thread): " + e);
+                System.out.println(threadUser);
                 users.remove(threadUser); // if user quits because of timeout, clear users list 
                 battleground.remove(threadUser); // if user quits because of timeout, clear battleground 
                 try {

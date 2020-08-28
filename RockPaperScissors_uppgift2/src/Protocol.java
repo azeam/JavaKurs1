@@ -139,6 +139,11 @@ public class Protocol {
         return output; 
     }
 
+    private boolean isDirty(String input) {
+        boolean checked = input.matches("^.*[^a-zA-Z0-9 ].*$");
+        return checked;
+    }
+
     // print weapon names
     private String getWeaponName(int weapon) {
         String weaponName = "";
@@ -199,8 +204,8 @@ public class Protocol {
         } else if (state == ENTERNAME) {
             if (input.length() > 0) {
                 synchronized (users) { // add user thread-safely
-                    if (input != null && input.length() > 0 && !users.contains(input)) { // add to hashmap if username
-                        glName = input; // set globally because lazy...                  // doesn't exist
+                    if (input != null && input.length() > 0 && !isDirty(input) && !users.contains(input)) {   // add to hashmap if username
+                        glName = input; // set globally because lazy...                                                             // doesn't exist
                         users.add(input);
                         output = "User " + input + " registered. "
                                 + ";;;Let's play, choose weapon - Rock [0], Paper [1] or Scissors [2]";
