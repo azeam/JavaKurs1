@@ -3,10 +3,10 @@
     -fx-fill: grey;
 }
 
-.charUnused {
+.charUnused, .underline {
     -fx-font-size: 44px;
 }
 
-.underline {
-    -fx-font-size: 44px;
+.score {
+    -fx-font-size: 24px;
 }

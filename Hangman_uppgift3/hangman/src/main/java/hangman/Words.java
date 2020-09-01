@@ -19,7 +19,7 @@ public class Words {
     // Använd er av minst en Class, varav en ska vara “private” class med själva ordet som ska gissas
     private class PrivSecretWord {
         ArrayList<String> secretWord = new ArrayList<String>();
-        public ArrayList<String> getRandomWord() {
+        private ArrayList<String> getRandomWord() {
             if (secretWord.size() == 0) {
                 HttpClient client = HttpClient.newHttpClient();
                 HttpRequest httpRequest = HttpRequest.newBuilder()
@@ -59,7 +59,6 @@ public class Words {
 
     public void styleAlphabet(String enteredLetter, boolean clear) {
         boolean doCheck = false;
-        enteredLetter = enteredLetter.toUpperCase();
         for (Node child : alphabet.getChildren()){
             if (child instanceof Text) {
                 String letter = ((Text)child).getText();
@@ -83,29 +82,61 @@ public class Words {
     }
 
     // increase font size of "_"-characters (and correct guesses)
-    public void styleGuesses() {
+    public void styleGuessesAndScore() {
         for (Node child : FXElements.hiddenWordFlow.getChildren()) {
             child.getStyleClass().add("underline");
         }
+        for (Node child : FXElements.scoreFlow.getChildren()) {
+            child.getStyleClass().add("score");
+        }
     }
 
-    private void checkSecretWord(String enteredLetter) {
+    public void checkSecretWord(String enteredLetter) {
         ArrayList<String> secretWord = getRandom(false);
+        boolean hit = false;
 
-        for (int i=0; i< secretWord.size(); i++){
-            if (ArrayLists.charsCorrect.contains(secretWord.get(i))){
-                ArrayLists.charsCorrect.set(i, secretWord.get(i));
+        if (enteredLetter.length() == 1) {
+            for (int i=0; i< secretWord.size(); i++){
+                if (secretWord.get(i).equals(enteredLetter)) {
+                    hit = true;
+                    UserData.charsCorrect.set(i*2, secretWord.get(i)); // * 2 because of whitespace
+                }
             }
-            if (secretWord.get(i).equals(enteredLetter)) {
-                ArrayLists.charsCorrect.set(i, secretWord.get(i));
+        }
+        else if (enteredLetter.length() > 1) { // whole word guessed
+            StringBuffer sb = new StringBuffer();
+            for (String s : secretWord) {
+               sb.append(s);
+            }
+            String secretCombined = sb.toString();
+            System.out.println("secretcombined " + secretCombined);
+            System.out.println("entered " + enteredLetter);
+            if (enteredLetter.equals(secretCombined)) {
+                System.out.println("Match");
+                hit = true;
+                for (int i=0; i< secretWord.size(); i++){
+                    UserData.charsCorrect.set(i*2, secretWord.get(i)); // * 2 because of whitespace
+                }
             }
         }
 
         FXElements.hiddenWordFlow.getChildren().clear();
-        for (String s : ArrayLists.charsCorrect) {
+        for (String s : UserData.charsCorrect) {
             FXElements.hiddenWordFlow.getChildren().add(new Text(s)); // adding does not, can't be used in loop 
         }
+        setScore(hit);
+        styleGuessesAndScore();
+    }
 
-        styleGuesses();
+    // update score text
+    private void setScore(boolean hit) {
+        if (!UserData.charsCorrect.contains("_") && hit) {
+            System.out.println("Victory!");                       
+        }
+        else if (!hit) {
+            UserData.livesCount--;
+            FXElements.scoreFlow.getChildren().clear();
+            FXElements.scoreFlow.getChildren().add(new Text("Attemps left: " + UserData.livesCount));
+        }
     }
 }
