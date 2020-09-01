@@ -1,0 +1,12 @@
+.charUsed {
+    -fx-font-size: 44px;
+    -fx-fill: grey;
+}
+
+.charUnused {
+    -fx-font-size: 44px;
+}
+
+.underline {
+    -fx-font-size: 44px;
+}
