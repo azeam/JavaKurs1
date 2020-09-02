@@ -68,32 +68,34 @@ public class FXElements {
 
     public static void drawHead() {
         // head
-        gc.setFill(Color.BLACK);
-        gc.fillOval(10, 14, 40, 40);
-        gc.fill();
+        gc.strokeOval(10, 14, 40, 40);
 
         // eyes
-        gc.setFill(Color.WHITE);
         gc.fillOval(20, 30, 5, 5);
-        gc.fill();
-        gc.stroke();
-
-        gc.setFill(Color.WHITE);
         gc.fillOval(30, 30, 5, 5);
-        gc.fill();
-        gc.stroke();
 
         // mouth
         gc.beginPath();
-        gc.setFill(Color.WHITE);
-        gc.rect(22, 42, 15, 2);
+        gc.rect(22, 42, 15, 1);
+
         gc.fill();
+        gc.stroke();
+    }
+
+    public static void drawTorso() {
+        // torso
+        gc.strokeOval(10, 54, 40, 80);
+        gc.stroke();
     }
 
     private void drawGallows() {
         gc.beginPath();
         gc.setFill(Color.BLACK);
-        gc.rect(30, 1, 4, 15);
+        gc.setStroke(Color.BLACK);
+        gc.rect(28, 1, 2, 14);
+        gc.rect(28, 1, 70, 4);
+        gc.rect(98, 1, 4, 200);
+        gc.stroke();
         gc.fill();
     }
 
