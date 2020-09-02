@@ -46,7 +46,6 @@ public class Words {
                                 secretWord.add(Character.toString(c));
                             }
                             EntityUtils.consume(entity);
-                            System.out.println(result);
                         }
                     } finally {
                         response.close();
@@ -63,7 +62,7 @@ public class Words {
                     }
                 }
             }
-            System.out.println(secretWord);
+//          System.out.println(secretWord);
             return secretWord;
         }
     }
@@ -125,7 +124,6 @@ public class Words {
             }
             String secretCombined = sb.toString();
             if (enteredLetter.equals(secretCombined)) {
-                System.out.println("Match");
                 hit = true;
                 for (int i=0; i< secretWord.size(); i++){
                     UserData.charsCorrect.set(i*2, secretWord.get(i)); // * 2 because of whitespace

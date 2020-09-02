@@ -127,7 +127,13 @@ public class FXElements {
             case 0:
                 drawArms();
                 words.styleGuessesAndScore(); // increase fontsize
-                Alert newGameAlert = new Alert(AlertType.CONFIRMATION, "You died. Play again?", ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+                ArrayList<String> secretWord = words.getRandom(false);
+                StringBuffer sb = new StringBuffer();
+                for (String s : secretWord) {
+                    sb.append(s);
+                }
+                String secretCombined = sb.toString();
+                Alert newGameAlert = new Alert(AlertType.CONFIRMATION, "You died, the word was \"" + secretCombined +"\". Play again?", ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
                 Optional<ButtonType> result = newGameAlert.showAndWait();
                 if (result.isPresent() && result.get() == ButtonType.YES) { 
                     newGame(words);
