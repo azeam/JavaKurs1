@@ -6,82 +6,95 @@ import java.util.Optional;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
 public class FXElements {
-    Button newGameBtn = new Button();
-    Button guessWordBtn = new Button();
+    static int gcWidth = 300;
+    static int gcHeight = 300;
+
+    Image newGameImg = new Image(getClass().getResourceAsStream("res/dice.png"));
+    Image guessWordImg = new Image(getClass().getResourceAsStream("res/keyboard.png"));
+    
+    Button newGameBtn = new Button("New game", new ImageView(newGameImg));
+    Button guessWordBtn = new Button("Guess whole word", new ImageView(guessWordImg));
+
     GridPane gridpane = new GridPane();
     HBox btnBox = new HBox(8); // spacing = 8
-    
-    Insets gridPadding = new Insets(20.0, 20.0, 20.0, 20.0);
-    public static TextFlow hiddenWordFlow = new TextFlow();
-    public static TextFlow scoreFlow = new TextFlow();
+    HBox bottomBox = new HBox(80);
 
-    
+    TextInputDialog wordDialog = new TextInputDialog(); 
+
+    static Canvas canvas = new Canvas(gcWidth, gcHeight);
+    static GraphicsContext gc = canvas.getGraphicsContext2D();
+
+    Insets gridPadding = new Insets(20.0, 20.0, 20.0, 20.0);
+    static TextFlow hiddenWordFlow = new TextFlow();
+    static TextFlow scoreFlow = new TextFlow();
+
+    static Words words = new Words();
 
     public void buildElements() { 
-        final Words words = new Words();
-        boolean newGame = true;
         UserData.livesCount = UserData.startLives;
 
         gridpane.getStylesheets().add(getClass().getResource("style.css").toExternalForm());        
         gridpane.setPadding(gridPadding);
-        
         gridpane.setVgap(30);
-        newGameBtn.setText("New game (random word)");
-        newGameBtn.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                newGame(words);
-            }
-        });
-
-        final TextInputDialog wordDialog = new TextInputDialog(); 
-        wordDialog.setHeaderText("Enter word"); 
-
-        guessWordBtn.setText("Guess whole word");
-        guessWordBtn.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                Optional<String> result = wordDialog.showAndWait();
-                if (result.isPresent()) { // = ok was pressed
-                    words.checkSecretWord(wordDialog.getEditor().getText().toUpperCase());
-                } 
-            }
-        });
+        wordDialog.setHeaderText("Enter word");
         
-        // key press listener, grey out and check for match 
-        gridpane.setOnKeyReleased(new EventHandler<KeyEvent>() {
-            public void handle(KeyEvent key) {
-                boolean clear = false;
-                if (UserData.livesCount > 0) {
-                    String letter = key.getText().toUpperCase();
-                    words.styleAlphabet(letter, clear);
-                }
-                else {
-                    System.out.println("YOU DEAD!");
-                }
-            }
-        });
+        setListeners();
 
         scoreFlow.getChildren().add(new Text("Attemps left: " + UserData.livesCount));
         btnBox.getChildren().addAll(newGameBtn, guessWordBtn);
+        bottomBox.getChildren().addAll(FXElements.scoreFlow, canvas);
         gridpane.add(btnBox, 0, 1); // column, row
         gridpane.add(words.alphabet, 0, 2); 
         gridpane.add(FXElements.hiddenWordFlow, 0, 3);
-        gridpane.add(FXElements.scoreFlow, 0, 4);
-        words.getRandom(newGame); // get random word and set as secret
-        buildAlphabet(words); // show alphabet
-        buildHidden(words); // show "_"-characters
-        words.styleGuessesAndScore(); // increase fontsize
+        gridpane.add(bottomBox, 0, 4);
+        newGame(words);
+    }
 
+    public static void drawHead() {
+        // head
+        gc.setFill(Color.BLACK);
+        gc.fillOval(10, 14, 40, 40);
+        gc.fill();
+
+        // eyes
+        gc.setFill(Color.WHITE);
+        gc.fillOval(20, 30, 5, 5);
+        gc.fill();
+        gc.stroke();
+
+        gc.setFill(Color.WHITE);
+        gc.fillOval(30, 30, 5, 5);
+        gc.fill();
+        gc.stroke();
+
+        // mouth
+        gc.beginPath();
+        gc.setFill(Color.WHITE);
+        gc.rect(22, 42, 15, 2);
+        gc.fill();
+    }
+
+    private void drawGallows() {
+        gc.beginPath();
+        gc.setFill(Color.BLACK);
+        gc.rect(30, 1, 4, 15);
+        gc.fill();
     }
 
     // check length of secret word and build line with "_"-characters
@@ -89,7 +102,7 @@ public class FXElements {
         ArrayList<String> secretWord = words.getRandom(false);
         for (int i = 0; i < secretWord.size(); i++) {
             UserData.charsCorrect.add("_");
-            UserData.charsCorrect.add(" ");
+            UserData.charsCorrect.add(" "); // setting margin between text does not seem to be possible, adding blankspace instead
             FXElements.hiddenWordFlow.getChildren().add(new Text("_"));
             FXElements.hiddenWordFlow.getChildren().add(new Text(" "));
         }
@@ -101,21 +114,56 @@ public class FXElements {
             String letter = Character.toString(i);
             words.alphabet.getChildren().add(new Text(letter));
         }
-        words.styleAlphabet("", true); // clear used chars
+    }
+
+    private void setListeners() {
+        newGameBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                newGame(words);
+            }
+        });
+        guessWordBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                Optional<String> result = wordDialog.showAndWait();
+                if (result.isPresent()) { // = ok was pressed
+                    words.checkSecretWord(wordDialog.getEditor().getText().toUpperCase());
+                } 
+            }
+        });
+        // key press listener, grey out and check for match 
+        gridpane.setOnKeyReleased(new EventHandler<KeyEvent>() {
+            public void handle(KeyEvent key) {
+                if (UserData.livesCount > 0) {
+                    String letter = key.getText().toUpperCase();
+                    words.styleAlphabet(letter);
+                }
+                else {
+                    System.out.println("YOU DEAD!");
+                }
+            }
+        });
     }
 
     private void newGame(Words words) {
         boolean newGame = true;
         UserData.livesCount = UserData.startLives;
-        FXElements.hiddenWordFlow.getChildren().clear();
         UserData.charsCorrect = new ArrayList<String>();
-        words.getRandom(newGame); // generate new word
-        buildHidden(words);
         
+        words.alphabet.getChildren().clear();
+        hiddenWordFlow.getChildren().clear();
         scoreFlow.getChildren().clear();
-        scoreFlow.getChildren().add(new Text("Attemps left: " + UserData.livesCount));
+        gc.clearRect(0, 0, gcWidth, gcHeight);
+
+        words.getRandom(newGame); // get random word and set as secret
+        buildAlphabet(words); // show alphabet
+        buildHidden(words); // show "_"-characters
+        scoreFlow.getChildren().add(new Text("Attemps left: " + UserData.livesCount)); // show attemps left
         
-        words.styleGuessesAndScore();
-        words.styleAlphabet("", newGame);
+        words.styleGuessesAndScore(); // increase fontsize
+        words.styleAlphabet("");
+
+        drawGallows();
     }
 }

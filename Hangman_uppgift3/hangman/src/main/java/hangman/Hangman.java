@@ -20,13 +20,7 @@ public class Hangman extends Application {
         FXElements fxElements = new FXElements();
         fxElements.buildElements();
         
-        window.setScene(new Scene(fxElements.gridpane));
+        window.setScene(new Scene(fxElements.gridpane));        
         window.show();
-    }
-
-    
-
-    
-
-    
+    }   
 }

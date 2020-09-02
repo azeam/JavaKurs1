@@ -50,26 +50,15 @@ public class Words {
         return secretWord;
     }
 
-    private void rotate(Node letter) {
-        RotateTransition transition = new RotateTransition(Duration.millis(100), letter);
-        transition.setByAngle(360);
-        transition.setCycleCount(3);
-        transition.play();  
-    }
-
-    public void styleAlphabet(String enteredLetter, boolean clear) {
+    public void styleAlphabet(String enteredLetter) {
         boolean doCheck = false;
         for (Node child : alphabet.getChildren()){
             if (child instanceof Text) {
                 String letter = ((Text)child).getText();
-                if (!clear && letter.equals(enteredLetter) && !child.getStyleClass().contains("charUsed")) { // only do if not already used
+                if (letter.equals(enteredLetter) && !child.getStyleClass().contains("charUsed")) { // only do if not already used
                     rotate(child);
                     child.getStyleClass().add("charUsed");
                     doCheck = true;
-                }
-                else if (clear) {
-                    child.getStyleClass().remove("charUsed");
-                    child.getStyleClass().add("charUnused");
                 }
                 else {
                     child.getStyleClass().add("charUnused");
@@ -137,6 +126,14 @@ public class Words {
             UserData.livesCount--;
             FXElements.scoreFlow.getChildren().clear();
             FXElements.scoreFlow.getChildren().add(new Text("Attemps left: " + UserData.livesCount));
+            FXElements.drawHead();
         }
+    }
+
+    private void rotate(Node letter) {
+        RotateTransition transition = new RotateTransition(Duration.millis(100), letter);
+        transition.setByAngle(360);
+        transition.setCycleCount(3);
+        transition.play();  
     }
 }

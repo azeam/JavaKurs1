@@ -1,9 +1,13 @@
 .charUsed {
-    -fx-font-size: 44px;
+    -fx-font-size: 34px;
     -fx-fill: grey;
 }
 
-.charUnused, .underline {
+.charUnused {
+    -fx-font-size: 34px;
+}
+
+.underline {
     -fx-font-size: 44px;
 }
 
