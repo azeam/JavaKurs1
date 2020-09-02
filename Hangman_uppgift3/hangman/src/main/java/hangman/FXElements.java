@@ -27,12 +27,14 @@ public class FXElements {
     static int gcWidth = 300;
     static int gcHeight = 300;
 
+    // icons for btns
     Image newGameImg = new Image(getClass().getResourceAsStream("res/dice.png"));
     Image guessWordImg = new Image(getClass().getResourceAsStream("res/keyboard.png"));
     
     Button newGameBtn = new Button("New game", new ImageView(newGameImg));
     Button guessWordBtn = new Button("Guess whole word", new ImageView(guessWordImg));
 
+    // containers
     GridPane gridpane = new GridPane();
     HBox btnBox = new HBox(8); // spacing = 8
     HBox bottomBox = new HBox(80);
@@ -42,13 +44,11 @@ public class FXElements {
     static Canvas canvas = new Canvas(gcWidth, gcHeight);
     static GraphicsContext gc = canvas.getGraphicsContext2D();
     static TextFlow hiddenWordFlow = new TextFlow();
-    static TextFlow scoreFlow = new TextFlow();
+    static HBox scoreBox = new HBox(8);
     static Words words = new Words();
     Insets gridPadding = new Insets(20.0, 20.0, 20.0, 20.0);
 
     public void buildElements() {
-        UserData.livesCount = UserData.startLives;
-
         gridpane.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
         gridpane.setPadding(gridPadding);
         gridpane.setVgap(30);
@@ -56,9 +56,8 @@ public class FXElements {
 
         setListeners();
 
-        scoreFlow.getChildren().add(new Text("Attemps left: " + UserData.livesCount));
         btnBox.getChildren().addAll(newGameBtn, guessWordBtn);
-        bottomBox.getChildren().addAll(FXElements.scoreFlow, canvas);
+        bottomBox.getChildren().addAll(canvas, FXElements.scoreBox);
         gridpane.add(btnBox, 0, 1); // column, row
         gridpane.add(words.alphabet, 0, 2);
         gridpane.add(FXElements.hiddenWordFlow, 0, 3);
@@ -68,22 +67,21 @@ public class FXElements {
 
     public static void drawHead() {
         // head
-        gc.strokeOval(10, 14, 40, 40);
+        gc.strokeOval(110, 14, 40, 40);
 
         // eyes
-        gc.fillOval(20, 30, 5, 5);
-        gc.fillOval(30, 30, 5, 5);
+        gc.fillOval(120, 30, 5, 5);
+        gc.fillOval(130, 30, 5, 5);
 
         // mouth
-        gc.strokeLine(22, 42, 32, 42);
+        gc.strokeLine(122, 42, 132, 42);
 
         gc.fill();
         gc.stroke();
     }
 
     public static void drawTorso() {
-        // torso
-        gc.strokeOval(10, 54, 40, 80);
+        gc.strokeOval(110, 54, 40, 80);
         gc.stroke();
     }
 
@@ -91,22 +89,29 @@ public class FXElements {
         gc.setFill(Color.BLACK);
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(3);
-        gc.strokeLine(28, 14, 28, 1);
-        gc.strokeLine(28, 1, 70, 1);
-        gc.strokeLine(70, 1, 70, 200);
+        gc.strokeLine(128, 14, 128, 1);
+        gc.strokeLine(128, 1, 170, 1);
+        gc.strokeLine(170, 1, 170, 200);
         gc.stroke();
         gc.fill();
     }
 
-    private static void drawArms() {
-        gc.strokeArc(1, 70, 30, 30, 100, 120, ArcType.OPEN);
-        gc.strokeArc(28, 70, 30, 30, -30, 110, ArcType.OPEN);
+    private static void drawLegs() {
+        gc.strokeLine(120, 130, 120, 160);
+        gc.strokeLine(140, 130, 140, 162);
         gc.stroke();
     }
 
-    private static void drawLegs() {
-        gc.strokeLine(20, 130, 20, 160);
-        gc.strokeLine(40, 130, 40, 162);
+    private static void drawArms() {
+        gc.strokeArc(101, 70, 30, 30, 100, 120, ArcType.OPEN);
+        gc.strokeArc(128, 70, 30, 30, -30, 110, ArcType.OPEN);
+
+        // dead eyes
+        gc.strokeLine(120, 32, 126, 32);
+        gc.strokeLine(123, 28, 123, 36);
+        gc.strokeLine(130, 32, 136, 32);
+        gc.strokeLine(133, 28, 133, 36);
+
         gc.stroke();
     }
 
@@ -126,13 +131,8 @@ public class FXElements {
                 break;
             case 0:
                 drawArms();
-                words.styleGuessesAndScore(); // increase fontsize
-                ArrayList<String> secretWord = words.getRandom(false);
-                StringBuffer sb = new StringBuffer();
-                for (String s : secretWord) {
-                    sb.append(s);
-                }
-                String secretCombined = sb.toString();
+                words.styleGuesses(); // increase fontsize
+                String secretCombined = words.getSecretAsString();
                 Alert newGameAlert = new Alert(AlertType.CONFIRMATION, "You died, the word was \"" + secretCombined +"\". Play again?", ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
                 Optional<ButtonType> result = newGameAlert.showAndWait();
                 if (result.isPresent() && result.get() == ButtonType.YES) { 
@@ -146,10 +146,10 @@ public class FXElements {
     private static void buildHidden(Words words) {
         ArrayList<String> secretWord = words.getRandom(false);
         for (int i = 0; i < secretWord.size(); i++) {
-            UserData.charsCorrect.add("_");
+            UserData.charsCorrect.add("_"); // build default guess list
             UserData.charsCorrect.add(" "); // setting margin between text does not seem to be possible, adding
                                             // blankspace instead
-            FXElements.hiddenWordFlow.getChildren().add(new Text("_"));
+            FXElements.hiddenWordFlow.getChildren().add(new Text("_")); // display _
             FXElements.hiddenWordFlow.getChildren().add(new Text(" "));
         }
     }
@@ -198,19 +198,17 @@ public class FXElements {
         UserData.livesCount = UserData.startLives;
         UserData.charsCorrect = new ArrayList<String>();
 
+        // clear and rebuild
         words.alphabet.getChildren().clear();
         hiddenWordFlow.getChildren().clear();
-        scoreFlow.getChildren().clear();
+        scoreBox.getChildren().clear();
         gc.clearRect(0, 0, gcWidth, gcHeight);
 
         words.getRandom(newGame); // get random word and set as secret
         buildAlphabet(words); // show alphabet
         buildHidden(words); // show "_"-characters
-        scoreFlow.getChildren().add(new Text("Attemps left: " + UserData.livesCount)); // show attemps left
-        
-        words.styleGuessesAndScore(); // increase fontsize
+        words.updateLives();        
+        words.styleGuesses(); // increase fontsize
         words.styleAlphabet("");
-        
-        drawParts(UserData.livesCount, words);
     }
 }
