@@ -1,11 +1,16 @@
 package hangman;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 
 import javafx.animation.RotateTransition;
 import javafx.scene.Node;
@@ -18,27 +23,44 @@ import javafx.util.Duration;
 
 public class Words {
     final TextFlow alphabet = new TextFlow();
-    PrivSecretWord privSecretWord = new PrivSecretWord(); // inst here or a new word will be generated each time getRandom() is called
-        
-    // Använd er av minst en Class, varav en ska vara “private” class med själva ordet som ska gissas
+    PrivSecretWord privSecretWord = new PrivSecretWord(); // inst here or a new word will be generated each time
+                                                          // getRandom() is called
+
+    // Använd er av minst en Class, varav en ska vara “private” class med själva
+    // ordet som ska gissas
     private class PrivSecretWord {
         ArrayList<String> secretWord = new ArrayList<String>();
+
         private ArrayList<String> getRandomWord() {
             if (secretWord.size() == 0) {
-                HttpClient client = HttpClient.newHttpClient();
-                HttpRequest httpRequest = HttpRequest.newBuilder()
-                .uri(URI.create(String.format("https://random-word-api.herokuapp.com/word?number=1")))
-                .GET()
-                .build();
-
-                try{
-                    HttpResponse<String> response = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-                    String sSecretWord = response.body().replaceAll("[^a-zA-Z]", "").toUpperCase();
-                    for (char c : sSecretWord.toCharArray()) {
-                        secretWord.add(Character.toString(c));
+                CloseableHttpClient httpClient = HttpClients.createDefault();
+                try {
+                    HttpGet request = new HttpGet("https://random-word-api.herokuapp.com/word?number=1");
+                    CloseableHttpResponse response = httpClient.execute(request);
+                    try {
+                        HttpEntity entity = response.getEntity();
+                        if (entity != null) {
+                            String result = EntityUtils.toString(entity);
+                            String sSecretWord = result.replaceAll("[^a-zA-Z]", "").toUpperCase();
+                            for (char c : sSecretWord.toCharArray()) {
+                                secretWord.add(Character.toString(c));
+                            }
+                            EntityUtils.consume(entity);
+                            System.out.println(result);
+                        }
+                    } finally {
+                        response.close();
                     }
-                }catch(Exception e){
-                    e.printStackTrace();
+                } catch (ClientProtocolException e) {
+                    System.out.println("Error " + e.getMessage());
+                } catch (IOException e) {
+                    System.out.println("Error " + e.getMessage());
+                } finally {
+                    try {
+                        httpClient.close();
+                    } catch (IOException e) {
+                        System.out.println("Error " + e.getMessage());
+                    }
                 }
             }
             System.out.println(secretWord);
@@ -102,8 +124,6 @@ public class Words {
                sb.append(s);
             }
             String secretCombined = sb.toString();
-            System.out.println("secretcombined " + secretCombined);
-            System.out.println("entered " + enteredLetter);
             if (enteredLetter.equals(secretCombined)) {
                 System.out.println("Match");
                 hit = true;
