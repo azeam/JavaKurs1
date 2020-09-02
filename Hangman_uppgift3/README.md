@@ -15,7 +15,7 @@
 *Bonus 2 är om ni uttnyttar ett object på något vis*  
 
 ## Dokumentation  
-Fungerande skick men inte så fina animationer som jag hade tänkt...
+Fungerande skick men inte så fina animationer som jag hade tänkt... Orden hämtas från en "random word API", därför behövs internetuppkoppling.
 
 Har försökt att paketera projektet i en jar-fil för att enklare kunna köra det utan att installera JavaFX m.m. men det verkar omöjligt att få till en fil som fungerar att köra i Windows och Linux oberoende av JDK. Vad som verkar fungera är att importera projektet i Eclipse och starta det därifrån, annars får man installera JavaFX och se till att modulerna hittas, t.ex. `--module-path %PATH_TO_FX% --add-modules javafx.controls`
 
