@@ -15,4 +15,4 @@
 *Bonus 2 är om ni uttnyttar ett object på något vis*  
 
 ## Dokumentation  
-En första början, fungerar typ men inte mer än så.
+Fungerande skick men inte så fina animationer.

@@ -9,14 +9,10 @@ public class Hangman extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-    
-    // TODO: show hint (synonym etc.?)
-    // TODO: select number of chars
-    // TODO: animation
 
     @Override
     public void start(Stage window) {
-        window.setTitle("Hang the man!");
+        window.setTitle("(Don't) hang the man!");
         FXElements fxElements = new FXElements();
         fxElements.buildElements();
         

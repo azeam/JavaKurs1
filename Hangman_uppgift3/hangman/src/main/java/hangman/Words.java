@@ -5,9 +5,13 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.Optional;
 
 import javafx.animation.RotateTransition;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.util.Duration;
@@ -120,13 +124,18 @@ public class Words {
     // update score text
     private void setScore(boolean hit) {
         if (!UserData.charsCorrect.contains("_") && hit) {
-            System.out.println("Victory!");                       
+            styleGuessesAndScore(); // increase fontsize
+            Alert newGameAlert = new Alert(AlertType.CONFIRMATION, "Congratulations, you won! Play again?", ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+            Optional<ButtonType> result = newGameAlert.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.YES) { 
+                FXElements.newGame(this);
+            }                      
         }
         else if (!hit) {
             UserData.livesCount--;
             FXElements.scoreFlow.getChildren().clear();
             FXElements.scoreFlow.getChildren().add(new Text("Attemps left: " + UserData.livesCount));
-            FXElements.drawHead();
+            FXElements.drawParts(UserData.livesCount, this);
         }
     }
 
