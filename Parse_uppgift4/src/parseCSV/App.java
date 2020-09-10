@@ -44,11 +44,6 @@ public class App {
 	}
 
 	private static void findDuplicateDates(List<List<String>> records, List<String> nameColumn) {
-		// build list with index as key
-		// build list if it doesn't already contain values
-		// remove from key list from second list
-		// print names with index
-
 		Map<Integer, String> uniqueDates = new HashMap<>();
 		Map<Integer, String> duplicateDates = new HashMap<>();
 
