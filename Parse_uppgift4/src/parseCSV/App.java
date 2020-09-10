@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class App {
 	private static String COMMA_DELIMITER = ",";
@@ -23,10 +24,12 @@ public class App {
 		
 		for(List<String> row:records){ 
 			nameColumn.add(row.get(1));
+			nameColumn.add(row.get(2));
 		}
 		countAs(nameColumn);
 		findDuplicateDates(records, nameColumn);
 		countAndroids(records);
+
 	}
 
 	private static void countAndroids(List<List<String>> records) {
@@ -50,7 +53,7 @@ public class App {
 		List<String> dateColumn = new ArrayList<String>();
 		
 		int z = 0;
-		for(List<String> row:records){ 
+		for(List<String> row : records){ 
 			dateColumn.add(row.get(0));
 			if(uniqueDates.containsValue(dateColumn.get(z)) && !dateColumn.get(z).equals("")) {
 				duplicateDates.put(z, dateColumn.get(z));
@@ -64,7 +67,7 @@ public class App {
 		for (Map.Entry<Integer, String> entry : duplicateDates.entrySet()) {
 			for(int i=1; i<dateColumn.size(); i++) {
 				if (duplicateDates.get(entry.getKey()).equals(dateColumn.get(i)) && !dateColumn.get(i).equals("") && !nameColumn.get(entry.getKey()).equals(nameColumn.get(i))) {
-					System.out.println(nameColumn.get(entry.getKey()) + " has same date as " + nameColumn.get(i));
+					System.out.println(nameColumn.get(entry.getKey() * 2) + " and " + nameColumn.get(entry.getKey() * 2 + 1) + " have the same date as " + nameColumn.get(i * 2)  + " and " + nameColumn.get(i * 2 + 1));
 				}
 			}
 		}
