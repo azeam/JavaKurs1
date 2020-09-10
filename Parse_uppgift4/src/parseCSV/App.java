@@ -53,12 +53,10 @@ public class App {
 		Map<Integer, String> duplicateDates = new HashMap<>();
 
 		List<String> dateColumn = new ArrayList<String>();
-		List<Integer> indexMatches = new ArrayList<Integer>();
 		
 		int z = 0;
 		for(List<String> row:records){ 
 			dateColumn.add(row.get(0));
-			indexMatches.add(z);
 			if(uniqueDates.containsValue(dateColumn.get(z)) && !dateColumn.get(z).equals("")) {
 				duplicateDates.put(z, dateColumn.get(z));
 			}
