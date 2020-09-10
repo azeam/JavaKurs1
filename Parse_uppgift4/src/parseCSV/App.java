@@ -25,7 +25,7 @@ public class App {
 			nameColumn.add(row.get(1));
 		}
 		countAs(nameColumn);
-		superComplexCompareDates(records, nameColumn);
+		findDuplicateDates(records, nameColumn);
 		countAndroids(records);
 	}
 
@@ -43,13 +43,12 @@ public class App {
 		System.out.println(count + " will work with Android");
 	}
 
-	private static void superComplexCompareDates(List<List<String>> records, List<String> nameColumn) {
+	private static void findDuplicateDates(List<List<String>> records, List<String> nameColumn) {
 		// build list with index as key
 		// build list if it doesn't already contain values
 		// remove from key list from second list
 		// print names with index
 
-		Map<Integer, String> indexDate = new HashMap<>();
 		Map<Integer, String> uniqueDates = new HashMap<>();
 		Map<Integer, String> duplicateDates = new HashMap<>();
 
@@ -60,7 +59,6 @@ public class App {
 		for(List<String> row:records){ 
 			dateColumn.add(row.get(0));
 			indexMatches.add(z);
-			indexDate.put(z, dateColumn.get(z));
 			if(uniqueDates.containsValue(dateColumn.get(z)) && !dateColumn.get(z).equals("")) {
 				duplicateDates.put(z, dateColumn.get(z));
 			}
