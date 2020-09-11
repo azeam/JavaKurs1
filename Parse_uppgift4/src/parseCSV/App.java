@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.stream.Collectors;
 
 public class App {
 	private static String COMMA_DELIMITER = ",";
@@ -43,7 +42,7 @@ public class App {
 				count++;
 			}	
 		}
-		System.out.println(count + " will work with Android");
+		System.out.println(count * 2 + " individuals will work with Android");
 	}
 
 	private static void findDuplicateDates(List<List<String>> records, List<String> nameColumn) {
@@ -66,7 +65,7 @@ public class App {
 
 		for (Map.Entry<Integer, String> entry : duplicateDates.entrySet()) {
 			for(int i=1; i<dateColumn.size(); i++) {
-				if (duplicateDates.get(entry.getKey()).equals(dateColumn.get(i)) && !dateColumn.get(i).equals("") && !nameColumn.get(entry.getKey()).equals(nameColumn.get(i))) {
+				if (duplicateDates.get(entry.getKey()).equals(dateColumn.get(i)) && !dateColumn.get(i).equals("") && !nameColumn.get(entry.getKey() * 2).equals(nameColumn.get(i * 2))) {
 					System.out.println(nameColumn.get(entry.getKey() * 2) + " and " + nameColumn.get(entry.getKey() * 2 + 1) + " have the same date as " + nameColumn.get(i * 2)  + " and " + nameColumn.get(i * 2 + 1));
 				}
 			}
