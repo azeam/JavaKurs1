@@ -11,10 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.TreeMap;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
 import com.univocity.parsers.csv.CsvParser;
@@ -24,7 +21,7 @@ public class App {
 	private static String COMMA_DELIMITER = ",";
 	public static void main(String[] args) {
 		List<List<String>> records = new ArrayList<>();
-		List<String> nameColumn = new ArrayList<String>();
+		List<String> nameColumn = new ArrayList<String>(); // used multiple times, declare here and pass to methods
 		try (Scanner scanner = new Scanner(new File("sample.csv"));) {
 			while (scanner.hasNextLine()) {
 				records.add(getRecordFromLine(scanner.nextLine()));
@@ -33,6 +30,7 @@ public class App {
 			e.printStackTrace();
 		}
 		
+		// add names from both columns to list
 		for(List<String> row:records){ 
 			nameColumn.add(row.get(1));
 			nameColumn.add(row.get(2));
@@ -41,18 +39,19 @@ public class App {
 		findDuplicateDates(records, nameColumn);
 		countAndroids(records);
 
-
+		// using univocity csv parser for bonus just to try something else
 		sortEmails();
-
 	}
 
 	private static void sortEmails() {
 		List<String[]> nameAndEmail = getColumns("Name group member #1", "Email address #1", "Name group member #2", "Email address member #2");
-		// sorted set multimap auto sorts alphabetically and allows for key value pairs that allow duplicates (both names and email can be duplicate)
+		// no default java collection allows for duplicate key/values as far as I can find (both names and email can be duplicate)
+		// sorted set multimap from Google guava auto sorts alphabetically and allows for key value pairs that allow duplicates 
 		SortedSetMultimap<String, String> nameAndEmailMap = TreeMultimap.create();
 
+		// build multimap with name as key and email as value and check if there are duplicates
 		for(String[] record : nameAndEmail){
-			for (int i = 0; i < 4; i++) {
+			for (int i = 0; i < 4; i++) {		 
 				if (nameAndEmailMap.containsValue(record[i]) && !record[i].equals("NULL")) {
 					System.out.println("Warning: " + record[i - 1] + "'s e-mail address " + record[i] + " already exists");				
 				}
@@ -60,13 +59,13 @@ public class App {
 					System.out.println("Warning: Duplicate name " + record[i]);	
 				}
 			}
-				nameAndEmailMap.put(record[0], record[1]);
-				nameAndEmailMap.put(record[2], record[3]);
+			nameAndEmailMap.put(record[0], record[1]);
+			nameAndEmailMap.put(record[2], record[3]);
 		}
 		System.out.println(nameAndEmailMap);
 	}
 
-
+	// get only the interesting columns from the csv using univocity csv parser 
 	private static List<String[]> getColumns(String name, String email, String name2, String email2) {
 		List<String[]> parsedRows = new ArrayList<String[]>();
 		try (Reader inputReader = new InputStreamReader(new FileInputStream(
@@ -94,13 +93,15 @@ public class App {
 		for(List<String> row : records){ 
 			androidColumn.add(row.get(6));
 		}
+		// if row contains "Android app" increase count
 		for(String android : androidColumn) {
 			if (android.equals("Android App")){
 				count++;
 			}	
 		}
-		System.out.println(count * 2 + " individuals will work with Android");
+		System.out.println(count * 2 + " individuals will work with Android"); // two individuals on each row
 	}
+
 
 	private static void findDuplicateDates(List<List<String>> records, List<String> nameColumn) {
 		Map<Integer, String> uniqueDates = new HashMap<>();
@@ -108,6 +109,8 @@ public class App {
 
 		List<String> dateColumn = new ArrayList<String>();
 		
+		// two hashmaps, check when adding to first if value already exists, then add it to second (duplicateDates) 
+		// together with the index as key (the index corresponds to the namecolumns index (* 2 because there are twice as many names))
 		int z = 0;
 		for(List<String> row : records){ 
 			dateColumn.add(row.get(0));
@@ -120,6 +123,8 @@ public class App {
 			z++;
 		}
 
+		// using the list of duplicate dates, check where the date matches in the whole date column and print names corresponding to
+		// the (duplicate) indices
 		for (Map.Entry<Integer, String> entry : duplicateDates.entrySet()) {
 			for(int i=1; i<dateColumn.size(); i++) {
 				if (duplicateDates.get(entry.getKey()).equals(dateColumn.get(i)) && !dateColumn.get(i).equals("") && !nameColumn.get(entry.getKey() * 2).equals(nameColumn.get(i * 2))) {
