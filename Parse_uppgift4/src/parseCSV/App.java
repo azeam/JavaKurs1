@@ -1,12 +1,24 @@
 package parseCSV;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.TreeMap;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.SortedSetMultimap;
+import com.google.common.collect.TreeMultimap;
+import com.univocity.parsers.csv.CsvParser;
+import com.univocity.parsers.csv.CsvParserSettings;
 
 public class App {
 	private static String COMMA_DELIMITER = ",";
@@ -29,6 +41,51 @@ public class App {
 		findDuplicateDates(records, nameColumn);
 		countAndroids(records);
 
+
+		sortEmails();
+
+	}
+
+	private static void sortEmails() {
+		List<String[]> nameAndEmail = getColumns("Name group member #1", "Email address #1", "Name group member #2", "Email address member #2");
+		// sorted set multimap auto sorts alphabetically and allows for key value pairs that allow duplicates (both names and email can be duplicate)
+		SortedSetMultimap<String, String> nameAndEmailMap = TreeMultimap.create();
+
+		for(String[] record : nameAndEmail){
+			for (int i = 0; i < 4; i++) {
+				if (nameAndEmailMap.containsValue(record[i]) && !record[i].equals("NULL")) {
+					System.out.println("Warning: " + record[i - 1] + "'s e-mail address " + record[i] + " already exists");				
+				}
+				if (nameAndEmailMap.containsKey(record[i]) && !record[i].equals("NULL")) {
+					System.out.println("Warning: Duplicate name " + record[i]);	
+				}
+			}
+				nameAndEmailMap.put(record[0], record[1]);
+				nameAndEmailMap.put(record[2], record[3]);
+		}
+		System.out.println(nameAndEmailMap);
+	}
+
+
+	private static List<String[]> getColumns(String name, String email, String name2, String email2) {
+		List<String[]> parsedRows = new ArrayList<String[]>();
+		try (Reader inputReader = new InputStreamReader(new FileInputStream(
+			new File("sample.csv")), "UTF-8")) {
+				CsvParserSettings settings = new CsvParserSettings();
+				settings.getFormat().setLineSeparator("\n");
+				settings.setHeaderExtractionEnabled(true);
+				settings.selectFields(name, email, name2, email2);
+				settings.setSkipEmptyLines(true);
+				settings.setNullValue("NULL");
+				settings.setEmptyValue("EMPTY");
+			  CsvParser parser = new CsvParser(settings);
+			  
+			  parsedRows = parser.parseAll(inputReader);
+			  
+		  } catch (IOException e) {
+			  // handle exception
+		  }
+		  return parsedRows;
 	}
 
 	private static void countAndroids(List<List<String>> records) {
