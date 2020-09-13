@@ -137,7 +137,7 @@ public class App {
 	private static void countAs(List<String> nameColumn) {
 		int count = 0;
 		for(int i=1; i<nameColumn.size(); i++) {
-			if (nameColumn.get(i).contains("a") || nameColumn.get(i).contains("A")) {
+			if ((nameColumn.get(i).contains("a") || nameColumn.get(i).contains("A")) && !nameColumn.get(i).equals("Name group member #2")) {
 				count++;
 			}
 		}
